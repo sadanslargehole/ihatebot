@@ -6,12 +6,13 @@ import asyncio
 from util import loadconfig
 #load the config
 config=loadconfig('config.json')
-#declare intents
+#declare intents 
 #TODO not include all intents
 intents = discord.Intents.all()
 #define the bot
 bot = commands.Bot(command_prefix=config['prefix'], intents=intents)
 # load exts
+bot.config= config
 async def load():
     for i in listdir('exts'):
         try:
@@ -24,5 +25,5 @@ async def load():
             print(f'error while loading {i}')
             print(e)
 asyncio.run(load())
-bot.owner_ids=config['admins']
-bot.run(config['token'])
+bot.owner_ids=bot.config['admins']
+bot.run(bot.config['token'])
