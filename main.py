@@ -26,4 +26,4 @@ async def load():
             print(e)
 asyncio.run(load())
 bot.owner_ids=bot.config['admins']
-bot.run(bot.config['token'])
+bot.run("MTA0ODc3ODQyNzM1Mzc5MjYzNA.GsLsqc.PF0nZCj3_QAheFOzK4PhLyooWe3Y2XS6cOn6s0")

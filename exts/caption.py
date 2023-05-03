@@ -3,7 +3,6 @@ from discord.ext import commands
 import ffmpeg
 import traceback
 from math import ceil, floor
-from os import system
 
 class caption(commands.Cog):
     def __init__(self, bot):
@@ -21,7 +20,7 @@ class caption(commands.Cog):
         a = await self.gen_text(caption, filenametmp, ctx)
         if a == 0:
             file = discord.File(f'./text/{filenametmp}')
-            await ctx.send(file=file)
+           # await ctx.send(file=file)
             a = await self.merge_images(filenametmp, ctx)
         if a == 0:
             file = discord.File(f'./final/{filenametmp}')
@@ -29,8 +28,13 @@ class caption(commands.Cog):
 
     async def merge_images(self, filename: str, ctx):
         try:
-            system(
-                f'ffmpeg -y -i ./text/{filename} -i ./images/{filename} -filter_complex vstack=inputs=2 ./final/{filename}')
+            # system(    
+            # f'ffmpeg -y -i ./text/{filename} -i ./images/{filename} -filter_complex vstack=inputs=2 ./final/{filename}')
+            text=ffmpeg.input(f'./text/{filename}')
+            image=ffmpeg.input(f'./images/{filename}')
+            joined = ffmpeg.filter([text,image], 'vstack')
+            out=ffmpeg.output(joined, f'./final/{filename}').overwrite_output()
+            ffmpeg.run(out)
             return 0
         except Exception as e:
             traceback.print_exc()
@@ -54,18 +58,43 @@ class caption(commands.Cog):
             # create a drawn obj
             draw = ImageDraw.Draw(bg)
             # load our font in ./assets/ and our font size
-            font = ImageFont.truetype('./assets/Futura-Condensed-Bold.ttf', 50)
+            font = ImageFont.truetype('./Futura-Condensed-Bold.ttf', 50)
             # set our text and text color
             txt_color = (0, 0, 0)
+            #set the default ammount of lines that will be used in the caption
+            lines=1
             text_width, text_height = draw.textsize(caption, font=font)
-            text_x = (bg_w - text_width) // 2
-            text_y = (bg_h - text_height) // 2
-            draw.text((text_x, text_y), caption, font=font, fill=txt_color)
+            if text_width >= bg_w:
+                tmp_cpn=caption.split(' ')
+                split=len(tmp_cpn)//2
+                cpn_1=' '.join(tmp_cpn[0:split])
+                print(cpn_1)
+                cpn_2=' '.join(tmp_cpn[split:])
+                print(cpn_2)
+                lines=2
+            if lines==2:
+                text_width1, text_height1 = draw.textsize(cpn_1, font=font)
+                text_y1 = ((bg_h - text_height1) // 3)
+                text_x1 = (bg_w - text_width1) // 2
+                text_width2, text_height2 = draw.textsize(cpn_2, font=font)
+                text_y2 = ((bg_h - text_height2) // 3)*2
+                text_x2 = (bg_w - text_width2) // 2
+                draw.text((text_x1, text_y1), cpn_1, font=font, fill=txt_color)
+                draw.text((text_x2, text_y2), cpn_2, font=font, fill=txt_color)
+            if lines==1:
+
+                text_x = (bg_w - text_width) // 2
+                text_y = (bg_h - text_height) // 2
+                draw.text((text_x, text_y), caption, font=font, fill=txt_color, anchor='mm')
+                
+                
+
+
             bg.save(f'./text/{filename}')
             return 0
         except Exception as e:
             traceback.print_exc()
-            await ctx.send(f'something went wrong: report this')
+            await ctx.send(f'oops, you fucked up')
             return 1
 
 
